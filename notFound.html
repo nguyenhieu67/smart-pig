@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="vi" class="h-full bg-slate-50">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 Không Tìm Thấy Trang - EduCRM</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="h-full flex items-center justify-center font-sans antialiased text-slate-800 p-6">
+    <div class="text-center max-w-xl">
+      <!-- 404 Graphic -->
+      <div class="relative inline-block">
+        <h1 class="text-[150px] font-black text-slate-200 leading-none tracking-tighter mix-blend-multiply">404</h1>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div
+            class="w-24 h-24 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-500 text-white flex items-center justify-center text-5xl shadow-xl shadow-indigo-500/40 animate-bounce"
+          >
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-8 space-y-4">
+        <h2 class="text-3xl font-bold text-slate-900">Ôi không! Trang này không tồn tại.</h2>
+        <p class="text-slate-500 text-base">
+          Trang bạn đang tìm kiếm có thể đã bị xóa, thay đổi tên hoặc tạm thời không khả dụng. Vui lòng kiểm tra lại
+          đường dẫn.
+        </p>
+      </div>
+
+      <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a
+          href="index.html"
+          class="w-full sm:w-auto inline-flex justify-center items-center gap-2 px-6 py-3 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+        >
+          <i class="fa-solid fa-arrow-left"></i>
+          Về Trang Chủ (Dashboard)
+        </a>
+        <a
+          href="login.html"
+          class="w-full sm:w-auto inline-flex justify-center items-center gap-2 px-6 py-3 border border-slate-300 rounded-xl shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors"
+        >
+          <i class="fa-solid fa-right-to-bracket"></i>
+          Đăng Nhập Lại
+        </a>
+      </div>
+
+      <!-- Support text -->
+      <div class="mt-12 text-sm text-slate-400">
+        Cần hỗ trợ? <a href="#" class="text-indigo-500 hover:underline">Liên hệ bộ phận kỹ thuật IT</a>
+      </div>
+    </div>
+  </body>
+</html>

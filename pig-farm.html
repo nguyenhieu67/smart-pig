@@ -1,0 +1,3031 @@
+<!doctype html>
+<html lang="vi" class="h-full bg-slate-50">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hệ Thống Quản Lý Chăn Nuôi Heo - SmartPig Management</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: "#fdf2f8",
+                100: "#fce7f3",
+                500: "#ec4899",
+                600: "#db2777",
+                700: "#be185d",
+                800: "#9d174d",
+              },
+              emerald: {
+                500: "#10b981",
+                600: "#059669",
+              },
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- Chart.js for Visual Data -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      .tab-btn.active {
+        background-color: #f1f5f9;
+        color: #be185d;
+        border-left: 4px solid #be185d;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body class="h-full flex flex-col overflow-hidden text-slate-800">
+    <!-- Top Navigation Bar -->
+    <header
+      class="bg-slate-900 text-white border-b border-slate-800 flex-shrink-0 h-16 flex items-center justify-between px-4 lg:px-6"
+    >
+      <div class="flex items-center space-x-3">
+        <button id="mobile-menu-toggle" class="lg:hidden text-slate-300 hover:text-white focus:outline-none p-1">
+          <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+        <div
+          class="bg-gradient-to-r from-pink-500 to-rose-600 p-2 rounded-xl text-white flex items-center justify-center shadow-lg shadow-pink-500/30"
+        >
+          <i class="fa-solid fa-piggy-bank text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight tracking-tight text-white flex items-center">
+            SmartPig
+            <span
+              class="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30"
+              >PRO</span
+            >
+          </h1>
+          <p class="text-xs text-slate-400 hidden sm:block">Hệ Thống Quản Lý Chăn Nuôi Heo Nái & Thịt Toàn Diện</p>
+        </div>
+      </div>
+
+      <!-- Quick Lifecycle Process Summary & Actions -->
+      <div class="flex items-center space-x-3">
+        <div class="relative hidden md:block">
+          <input
+            type="text"
+            id="global-search"
+            placeholder="Tìm mã heo, mã đàn..."
+            class="bg-slate-800 text-xs text-white placeholder-slate-400 rounded-lg pl-8 pr-4 py-2 w-56 focus:outline-none focus:ring-2 focus:ring-pink-500 border border-slate-700"
+          />
+          <i class="fa-solid fa-search absolute left-2.5 top-2.5 text-xs text-slate-400"></i>
+        </div>
+
+        <div class="relative">
+          <button
+            id="alert-btn"
+            class="relative p-2 text-slate-300 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+          >
+            <i class="fa-solid fa-bell text-lg"></i>
+            <span
+              id="alert-badge"
+              class="absolute top-1 right-1 bg-rose-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center"
+              >4</span
+            >
+          </button>
+          <!-- Alert Dropdown -->
+          <div
+            id="alert-dropdown"
+            class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-slate-100 z-50 text-slate-800 overflow-hidden"
+          >
+            <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+              <span class="font-bold text-sm text-slate-800">Cảnh Báo Việc Cần Làm</span>
+              <span class="text-xs text-pink-600 font-semibold cursor-pointer" onclick="switchTab('tab-calendar')"
+                >Xem tất cả</span
+              >
+            </div>
+            <div class="max-h-64 overflow-y-auto divide-y divide-slate-100 text-xs" id="quick-alert-list">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <button
+          onclick="openModal('modal-add-action')"
+          class="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center space-x-1.5 shadow-md shadow-pink-600/20 transition"
+        >
+          <i class="fa-solid fa-plus"></i>
+          <span class="hidden sm:inline">Ghi Nhận Mới</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Body Container -->
+    <div class="flex-1 flex overflow-hidden">
+      <!-- Sidebar Navigation -->
+      <aside
+        id="sidebar"
+        class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0 transition-all duration-300 -translate-x-full lg:translate-x-0 fixed lg:relative z-40 h-[calc(100vh-4rem)]"
+      >
+        <!-- Strategic Process Workflow Header -->
+        <div class="p-3 bg-slate-950/60 border-b border-slate-800/80">
+          <div class="text-[11px] uppercase tracking-wider font-bold text-pink-400 mb-1 flex items-center">
+            <i class="fa-solid fa-diagram-project mr-1.5"></i> Luồng Sản Xuất
+          </div>
+          <p class="text-[11px] text-slate-400">Nái → Phối → Mang thai → Đẻ → Cai sữa → Bán</p>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1 text-slate-300 text-xs">
+          <div class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tổng Quan</div>
+
+          <button
+            onclick="switchTab('tab-dashboard')"
+            class="tab-btn active w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-left"
+          >
+            <i class="fa-solid fa-chart-pie w-5 text-center text-pink-400"></i>
+            <span>Dashboard Báo Cáo</span>
+          </button>
+
+          <button
+            onclick="switchTab('tab-workflow')"
+            class="tab-btn w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-left"
+          >
+            <i class="fa-solid fa-arrows-spin w-5 text-center text-cyan-400"></i>
+            <span>Quy Trình Chăn Nuôi</span>
+          </button>
+
+          <div class="px-3 py-1.5 mt-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            Đàn Heo & Sinh Sản
+          </div>
+
+          <button
+            onclick="switchTab('tab-sows')"
+            class="tab-btn w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-left"
+          >
+            <i class="fa-solid fa-piggy-bank w-5 text-center text-pink-500"></i>
+            <span>1. Quản Lý Heo Nái</span>
+          </button>
+
+          <button
+            onclick="switchTab('tab-mating')"
+            class="tab-btn w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-left"
+          >
+            <i class="fa-solid fa-dna w-5 text-center text-purple-400"></i>
+            <span>2. Quản Lý Phối Giống</span>
+          </button>
+
+          <button
+            onclick="switchTab('tab-gestation')"
+            class="tab-btn w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-left"
+          >
+            <i class="fa-solid fa-baby-carriage w-5 text-center text-indigo-400"></i>
+            <span>3. Quản Lý Thai Kỳ</span>
+          </button>
+
+          <button
+            onclick="switchTab('tab-farrowing')"
+            class="tab-btn w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-left"
+          >
+            <i class="fa-solid fa-heart-pulse w-5 text-center text-rose-400"></i>
+            <span>4. Quản Lý Sinh Sản</span>
+          </button>
+
+          <button
+            onclick="switchTab('tab-piglets')"
+            class="tab-btn w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-left"
+          >
+            <i class="fa-solid fa-paw w-5 text-center text-amber-400"></i>
+            <span>5. Đàn Heo Con & Cai Sữa</span>
+          </button>
+
+          <div class="px-3 py-1.5 mt-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            Vận Hành & Sức Khỏe
+          </div>
+
+          <button
+            onclick="switchTab('tab-feed')"
+            class="tab-btn w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-left"
+          >
+            <i class="fa-solid fa-wheat-awn w-5 text-center text-yellow-500"></i>
+            <span>6. Thức Ăn & Dinh Dưỡng</span>
+          </button>
+
+          <button
+            onclick="switchTab('tab-health')"
+            class="tab-btn w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-left"
+          >
+            <i class="fa-solid fa-syringe w-5 text-center text-emerald-400"></i>
+            <span>7-8. Vaccine & Sức Khỏe</span>
+          </button>
+
+          <button
+            onclick="switchTab('tab-pens')"
+            class="tab-btn w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-left"
+          >
+            <i class="fa-solid fa-warehouse w-5 text-center text-blue-400"></i>
+            <span>9. Quản Lý Chuồng Trại</span>
+          </button>
+
+          <div class="px-3 py-1.5 mt-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            Tài Chính & Kinh Doanh
+          </div>
+
+          <button
+            onclick="switchTab('tab-sales')"
+            class="tab-btn w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-left"
+          >
+            <i class="fa-solid fa-money-bill-trend-up w-5 text-center text-emerald-400"></i>
+            <span>10. Quản Lý Bán Heo</span>
+          </button>
+
+          <button
+            onclick="switchTab('tab-expenses')"
+            class="tab-btn w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-left"
+          >
+            <i class="fa-solid fa-receipt w-5 text-center text-rose-400"></i>
+            <span>11. Chi Phí Vận Hành</span>
+          </button>
+
+          <button
+            onclick="switchTab('tab-profit')"
+            class="tab-btn w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-left"
+          >
+            <i class="fa-solid fa-chart-line w-5 text-center text-teal-400"></i>
+            <span>12. Doanh Thu & Lợi Nhuận</span>
+          </button>
+
+          <div class="px-3 py-1.5 mt-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tiện Ích</div>
+
+          <button
+            onclick="switchTab('tab-calendar')"
+            class="tab-btn w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-left"
+          >
+            <i class="fa-solid fa-calendar-days w-5 text-center text-sky-400"></i>
+            <span>14. Lịch & Cảnh Báo Sắp Tới</span>
+          </button>
+        </nav>
+
+        <!-- Footer Info -->
+        <div
+          class="p-3 border-t border-slate-800 bg-slate-950/80 text-[11px] text-slate-400 flex items-center justify-between"
+        >
+          <div>
+            <p class="font-medium text-slate-300">Trang Trại SmartPig</p>
+            <p class="text-[10px] text-slate-500">Quy mô: 25 Nái - 280 Thịt</p>
+          </div>
+          <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
+        </div>
+      </aside>
+
+      <!-- Main Content Workspace -->
+      <main class="flex-1 bg-slate-100 overflow-y-auto p-4 md:p-6 custom-scrollbar">
+        <!-- TAB 13: DASHBOARD -->
+        <section id="tab-dashboard" class="tab-content space-y-6">
+          <!-- Top Status Header -->
+          <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80"
+          >
+            <div>
+              <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                <i class="fa-solid fa-gauge-high text-pink-600 mr-2"></i> Báo Cáo Tổng Quan Trang Trại
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">
+                Cập nhật realtime tình trạng đàn heo, sinh sản, sức khỏe và kinh doanh.
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                onclick="renderAllData()"
+                class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg flex items-center gap-1.5 transition"
+              >
+                <i class="fa-solid fa-rotate"></i> Làm mới
+              </button>
+              <span
+                class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5"
+              >
+                <i class="fa-solid fa-circle text-[8px] text-emerald-500"></i> Trang trại hoạt động bình thường
+              </span>
+            </div>
+          </div>
+
+          <!-- Strategic Production Pipeline Banner -->
+          <div
+            class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-5 text-white shadow-md border border-slate-800"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-bold uppercase tracking-wider text-pink-400">Mô hình sản xuất khép kín</span>
+              <span class="text-xs text-slate-400">Xem tiến độ đàn heo</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
+              <div
+                class="bg-slate-800/80 border border-slate-700/60 p-3 rounded-xl hover:border-pink-500 transition cursor-pointer"
+                onclick="switchTab('tab-sows')"
+              >
+                <div class="text-slate-400 text-[11px] mb-1">1. Heo Nái</div>
+                <div class="text-xl font-extrabold text-white" id="pipe-sow-count">25</div>
+                <div class="text-[10px] text-pink-400 mt-0.5">Tổng đàn nái</div>
+              </div>
+              <div
+                class="bg-slate-800/80 border border-slate-700/60 p-3 rounded-xl hover:border-purple-500 transition cursor-pointer"
+                onclick="switchTab('tab-mating')"
+              >
+                <div class="text-slate-400 text-[11px] mb-1">2. Phối Giống</div>
+                <div class="text-xl font-extrabold text-purple-300" id="pipe-mating-count">4</div>
+                <div class="text-[10px] text-purple-400 mt-0.5">Vừa phối / chờ khám</div>
+              </div>
+              <div
+                class="bg-slate-800/80 border border-slate-700/60 p-3 rounded-xl hover:border-indigo-500 transition cursor-pointer"
+                onclick="switchTab('tab-gestation')"
+              >
+                <div class="text-slate-400 text-[11px] mb-1">3. Mang Thai</div>
+                <div class="text-xl font-extrabold text-indigo-300" id="pipe-gestation-count">12</div>
+                <div class="text-[10px] text-indigo-400 mt-0.5">3 nái sắp đẻ</div>
+              </div>
+              <div
+                class="bg-slate-800/80 border border-slate-700/60 p-3 rounded-xl hover:border-rose-500 transition cursor-pointer"
+                onclick="switchTab('tab-farrowing')"
+              >
+                <div class="text-slate-400 text-[11px] mb-1">4. Đang Nuôi Con</div>
+                <div class="text-xl font-extrabold text-rose-300" id="pipe-nursing-count">6</div>
+                <div class="text-[10px] text-rose-400 mt-0.5">Nái đang nuôi heo con</div>
+              </div>
+              <div
+                class="bg-slate-800/80 border border-slate-700/60 p-3 rounded-xl hover:border-amber-500 transition cursor-pointer"
+                onclick="switchTab('tab-piglets')"
+              >
+                <div class="text-slate-400 text-[11px] mb-1">5. Heo Con & Thịt</div>
+                <div class="text-xl font-extrabold text-amber-300" id="pipe-piglet-count">168</div>
+                <div class="text-[10px] text-amber-400 mt-0.5">28 con sắp cai sữa</div>
+              </div>
+              <div
+                class="bg-slate-800/80 border border-slate-700/60 p-3 rounded-xl hover:border-emerald-500 transition cursor-pointer"
+                onclick="switchTab('tab-sales')"
+              >
+                <div class="text-slate-400 text-[11px] mb-1">6. Xuất Bán</div>
+                <div class="text-xl font-extrabold text-emerald-400" id="pipe-sale-ready">32</div>
+                <div class="text-[10px] text-emerald-300 mt-0.5">Đạt xuất bán tháng này</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI Metric Cards Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div
+              class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between"
+            >
+              <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tổng Heo Nái</p>
+                <h3 class="text-2xl font-black text-slate-800 mt-1" id="dash-sow-total">25</h3>
+                <p class="text-xs text-emerald-600 mt-1 font-medium">
+                  <i class="fa-solid fa-arrow-up text-[10px]"></i> 12 nái mang thai
+                </p>
+              </div>
+              <div
+                class="bg-pink-100 text-pink-600 h-12 w-12 rounded-xl flex items-center justify-center text-xl font-bold"
+              >
+                <i class="fa-solid fa-piggy-bank"></i>
+              </div>
+            </div>
+
+            <div
+              class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between"
+            >
+              <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Heo Con & Đàn Nuôi</p>
+                <h3 class="text-2xl font-black text-slate-800 mt-1" id="dash-piglet-total">168</h3>
+                <p class="text-xs text-amber-600 mt-1 font-medium">
+                  <i class="fa-solid fa-clock text-[10px]"></i> 28 con sắp cai sữa
+                </p>
+              </div>
+              <div
+                class="bg-amber-100 text-amber-600 h-12 w-12 rounded-xl flex items-center justify-center text-xl font-bold"
+              >
+                <i class="fa-solid fa-paw"></i>
+              </div>
+            </div>
+
+            <div
+              class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between"
+            >
+              <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sức Khỏe & Cảnh Báo</p>
+                <h3 class="text-2xl font-black text-slate-800 mt-1" id="dash-health-alert">2 Bệnh</h3>
+                <p class="text-xs text-rose-600 mt-1 font-medium">
+                  <i class="fa-solid fa-triangle-exclamation text-[10px]"></i> 1 heo chết tháng này
+                </p>
+              </div>
+              <div
+                class="bg-rose-100 text-rose-600 h-12 w-12 rounded-xl flex items-center justify-center text-xl font-bold"
+              >
+                <i class="fa-solid fa-notes-medical"></i>
+              </div>
+            </div>
+
+            <div
+              class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between"
+            >
+              <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Lợi Nhuận Tháng Này</p>
+                <h3 class="text-2xl font-black text-emerald-600 mt-1" id="dash-profit-month">128.5 Tr</h3>
+                <p class="text-xs text-slate-500 mt-1 font-medium">Doanh thu: <span id="dash-rev-month">240Tr</span></p>
+              </div>
+              <div
+                class="bg-emerald-100 text-emerald-600 h-12 w-12 rounded-xl flex items-center justify-center text-xl font-bold"
+              >
+                <i class="fa-solid fa-sack-dollar"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Visual Charts Section -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Chart 1: Revenue & Expense Trend -->
+            <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-bold text-slate-800 flex items-center">
+                  <i class="fa-solid fa-chart-column text-emerald-600 mr-2"></i> Biểu Đồ Doanh Thu, Chi Phí & Lợi Nhuận
+                  (VNĐ)
+                </h3>
+                <span class="text-xs text-slate-400">6 tháng gần nhất</span>
+              </div>
+              <div class="h-64 relative">
+                <canvas id="chartFinancials"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 2: Sow Status Breakdown -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-bold text-slate-800 flex items-center">
+                  <i class="fa-solid fa-pie-chart text-pink-600 mr-2"></i> Phân Bố Trạng Thái Đàn Nái
+                </h3>
+              </div>
+              <div class="h-64 relative flex items-center justify-center">
+                <canvas id="chartSowStatus"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Urgent Tasks & Critical Calendar Panel -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
+                <h3 class="text-sm font-bold text-slate-800 flex items-center">
+                  <i class="fa-solid fa-calendar-check text-rose-500 mr-2"></i> Nái Sắp Sinh & Cần Chuẩn Bị (7 ngày tới)
+                </h3>
+                <button
+                  onclick="switchTab('tab-gestation')"
+                  class="text-xs text-pink-600 hover:underline font-semibold"
+                >
+                  Xem chi tiết
+                </button>
+              </div>
+              <div class="space-y-2.5 text-xs" id="dash-farrowing-alerts">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
+                <h3 class="text-sm font-bold text-slate-800 flex items-center">
+                  <i class="fa-solid fa-syringe text-emerald-600 mr-2"></i> Lịch Lịch Tiêm Vaccine & Dùng Thuốc Tới Hạn
+                </h3>
+                <button onclick="switchTab('tab-health')" class="text-xs text-pink-600 hover:underline font-semibold">
+                  Xem toàn bộ lịch
+                </button>
+              </div>
+              <div class="space-y-2.5 text-xs" id="dash-vaccine-alerts">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB WORKFLOW: PRODUCTION LIFECYCLE -->
+        <section id="tab-workflow" class="tab-content hidden space-y-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+            <h2 class="text-xl font-bold text-slate-800 flex items-center">
+              <i class="fa-solid fa-arrows-spin text-cyan-600 mr-2"></i> Quy Trình Quản Lý Sản Xuất Chăn Nuôi Heo
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">
+              Sơ đồ luồng chăn nuôi chuẩn từ quản lý nái đến khi bán thành phẩm & tối ưu lợi nhuận.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div class="bg-white p-5 rounded-2xl border-l-4 border-pink-500 shadow-sm space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-pink-600 bg-pink-50 px-2.5 py-1 rounded-full">BƯỚC 1</span>
+                <i class="fa-solid fa-piggy-bank text-2xl text-pink-400"></i>
+              </div>
+              <h3 class="font-bold text-slate-800 text-base">Quản Lý Heo Nái</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                Theo dõi mã tag, nguồn gốc, giống (Landrace, Yorkshire, Duroc), ngày sinh, thể trạng, lịch sử đẻ.
+              </p>
+              <button
+                onclick="switchTab('tab-sows')"
+                class="w-full text-center py-2 bg-pink-50 text-pink-700 hover:bg-pink-100 font-semibold text-xs rounded-xl transition"
+              >
+                Vào Quản Lý Heo Nái <i class="fa-solid fa-arrow-right ml-1"></i>
+              </button>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border-l-4 border-purple-500 shadow-sm space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full">BƯỚC 2 & 3</span>
+                <i class="fa-solid fa-baby-carriage text-2xl text-purple-400"></i>
+              </div>
+              <h3 class="font-bold text-slate-800 text-base">Phối Giống & Mang Thai</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                Ghi nhận động dục, ngày phối, đực/tinh phối. Tự động tính ngày dự kiến sinh (114 ngày), lên lịch tiêm
+                vaccine mang thai.
+              </p>
+              <div class="flex gap-2">
+                <button
+                  onclick="switchTab('tab-mating')"
+                  class="flex-1 text-center py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 font-semibold text-xs rounded-xl transition"
+                >
+                  Phối Giống
+                </button>
+                <button
+                  onclick="switchTab('tab-gestation')"
+                  class="flex-1 text-center py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold text-xs rounded-xl transition"
+                >
+                  Thai Kỳ
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border-l-4 border-rose-500 shadow-sm space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full">BƯỚC 4</span>
+                <i class="fa-solid fa-heart-pulse text-2xl text-rose-400"></i>
+              </div>
+              <h3 class="font-bold text-slate-800 text-base">Sinh Sản (Nái Đẻ)</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                Ghi nhận số con sơ sinh, số con sống, con chết, con dị tật, trọng lượng sơ sinh trung bình, can thiệp hộ
+                sinh.
+              </p>
+              <button
+                onclick="switchTab('tab-farrowing')"
+                class="w-full text-center py-2 bg-rose-50 text-rose-700 hover:bg-rose-100 font-semibold text-xs rounded-xl transition"
+              >
+                Vào Quản Lý Sinh Sản <i class="fa-solid fa-arrow-right ml-1"></i>
+              </button>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border-l-4 border-amber-500 shadow-sm space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">BƯỚC 5</span>
+                <i class="fa-solid fa-paw text-2xl text-amber-400"></i>
+              </div>
+              <h3 class="font-bold text-slate-800 text-base">Chăm Sóc Heo Con & Cai Sữa</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                Theo dõi tiêm sắt (ngày 3, 10), bấm răng, cắt đuôi, theo dõi trọng lượng tăng trưởng, chuyển giai đoạn
+                cai sữa (21-28 ngày).
+              </p>
+              <button
+                onclick="switchTab('tab-piglets')"
+                class="w-full text-center py-2 bg-amber-50 text-amber-700 hover:bg-amber-100 font-semibold text-xs rounded-xl transition"
+              >
+                Quản Lý Đàn Heo Con <i class="fa-solid fa-arrow-right ml-1"></i>
+              </button>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border-l-4 border-emerald-500 shadow-sm space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full"
+                  >BƯỚC 6 & 7</span
+                >
+                <i class="fa-solid fa-truck-field text-2xl text-emerald-400"></i>
+              </div>
+              <h3 class="font-bold text-slate-800 text-base">Nuôi Thịt & Xuất Bán</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                Phân chuồng nuôi thịt, quản lý cám/dinh dưỡng, tiêm phòng vaccine dịch tả, xuất bán theo ký, lập phiếu
+                thu tiền.
+              </p>
+              <button
+                onclick="switchTab('tab-sales')"
+                class="w-full text-center py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold text-xs rounded-xl transition"
+              >
+                Quản Lý Bán Heo <i class="fa-solid fa-arrow-right ml-1"></i>
+              </button>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border-l-4 border-teal-500 shadow-sm space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full">BƯỚC 8</span>
+                <i class="fa-solid fa-calculator text-2xl text-teal-400"></i>
+              </div>
+              <h3 class="font-bold text-slate-800 text-base">Tính Doanh Thu & Lợi Nhuận</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                Tổng hợp chi phí điện, nước, cám, thuốc, nhân công. Phân tích lợi nhuận theo từng lứa đẻ của heo nái.
+              </p>
+              <button
+                onclick="switchTab('tab-profit')"
+                class="w-full text-center py-2 bg-teal-50 text-teal-700 hover:bg-teal-100 font-semibold text-xs rounded-xl transition"
+              >
+                Xem Lợi Nhuận <i class="fa-solid fa-arrow-right ml-1"></i>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 1: SOW MANAGEMENT (QUẢN LÝ HEO NÁI) -->
+        <section id="tab-sows" class="tab-content hidden space-y-6">
+          <!-- Header Actions -->
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm"
+          >
+            <div>
+              <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                <i class="fa-solid fa-piggy-bank text-pink-600 mr-2"></i> 1. Quản Lý Đàn Heo Nái
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">
+                Danh sách nái sinh sản, giống, thể trạng, chuồng trại và lịch sử đẻ.
+              </p>
+            </div>
+            <button
+              onclick="openModal('modal-add-sow')"
+              class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition shadow-md shadow-pink-600/20"
+            >
+              <i class="fa-solid fa-plus"></i> Thêm Nái Mới
+            </button>
+          </div>
+
+          <!-- Sow Data Table -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-3 justify-between items-center">
+              <div class="relative w-full sm:w-64">
+                <input
+                  type="text"
+                  id="search-sow"
+                  oninput="filterSowTable()"
+                  placeholder="Tìm Mã Nái, Giống..."
+                  class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                />
+                <i class="fa-solid fa-search absolute left-2.5 top-2.5 text-xs text-slate-400"></i>
+              </div>
+              <div class="flex items-center gap-2 w-full sm:w-auto">
+                <select
+                  id="filter-sow-status"
+                  onchange="filterSowTable()"
+                  class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                >
+                  <option value="">Tất cả trạng thái</option>
+                  <option value="Sẵn sàng">Sẵn sàng phối</option>
+                  <option value="Đã phối">Đã phối</option>
+                  <option value="Mang thai">Mang thai</option>
+                  <option value="Đang nuôi con">Đang nuôi con</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead
+                  class="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200/80"
+                >
+                  <tr>
+                    <th class="px-4 py-3">Mã Nái</th>
+                    <th class="px-4 py-3">Giống</th>
+                    <th class="px-4 py-3">Ngày Sinh / Tuổi</th>
+                    <th class="px-4 py-3">Trọng Lượng</th>
+                    <th class="px-4 py-3">Nguồn Gốc</th>
+                    <th class="px-4 py-3">Trạng Thái</th>
+                    <th class="px-4 py-3">Lứa Đẻ</th>
+                    <th class="px-4 py-3">Chuồng</th>
+                    <th class="px-4 py-3 text-right">Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody id="sow-table-body" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: MATING MANAGEMENT (QUẢN LÝ PHỐI GIỐNG) -->
+        <section id="tab-mating" class="tab-content hidden space-y-6">
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm"
+          >
+            <div>
+              <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                <i class="fa-solid fa-dna text-purple-600 mr-2"></i> 2. Quản Lý Phối Giống
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">
+                Theo dõi chu kỳ động dục, ngày phối, nguồn tinh đực, dự kiến đẻ.
+              </p>
+            </div>
+            <button
+              onclick="openModal('modal-add-mating')"
+              class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition shadow-md shadow-purple-600/20"
+            >
+              <i class="fa-solid fa-plus"></i> Ghi Nhận Phối Giống
+            </button>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead
+                  class="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200/80"
+                >
+                  <tr>
+                    <th class="px-4 py-3">Mã Nái</th>
+                    <th class="px-4 py-3">Ngày Động Dục</th>
+                    <th class="px-4 py-3">Ngày Phối</th>
+                    <th class="px-4 py-3">Heo Đực / Tinh Phối</th>
+                    <th class="px-4 py-3">Số Lần Phối</th>
+                    <th class="px-4 py-3">Kết Quả Phối</th>
+                    <th class="px-4 py-3">Ngày Dự Kiến Sinh (114 ngày)</th>
+                    <th class="px-4 py-3 text-right">Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody id="mating-table-body" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 3: GESTATION MANAGEMENT (QUẢN LÝ THAI KỲ) -->
+        <section id="tab-gestation" class="tab-content hidden space-y-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+            <h2 class="text-xl font-bold text-slate-800 flex items-center">
+              <i class="fa-solid fa-baby-carriage text-indigo-600 mr-2"></i> 3. Theo Dõi Mang Thai & Thai Kỳ
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">
+              Giám sát tiến độ mang thai, khẩu phần ăn cám mang thai, tiêm ngừa nái mang thai.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="gestation-cards-container">
+            <!-- Cards Populated by JS -->
+          </div>
+        </section>
+
+        <!-- TAB 4: FARROWING MANAGEMENT (QUẢN LÝ SINH SẢN) -->
+        <section id="tab-farrowing" class="tab-content hidden space-y-6">
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm"
+          >
+            <div>
+              <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                <i class="fa-solid fa-heart-pulse text-rose-600 mr-2"></i> 4. Quản Lý Sinh Sản (Nái Đẻ)
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">
+                Ghi nhận chi tiết kết quả sinh sản: số con sống, con chết, con yếu, hỗ trợ sinh sản.
+              </p>
+            </div>
+            <button
+              onclick="openModal('modal-add-farrow')"
+              class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition shadow-md shadow-rose-600/20"
+            >
+              <i class="fa-solid fa-plus"></i> Ghi Nhận Ca Sinh
+            </button>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead
+                  class="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200/80"
+                >
+                  <tr>
+                    <th class="px-4 py-3">Mã Nái Mẹ</th>
+                    <th class="px-4 py-3">Ngày Sinh</th>
+                    <th class="px-4 py-3">Mã Đàn Khởi Tạo</th>
+                    <th class="px-4 py-3">Tổng Sinh</th>
+                    <th class="px-4 py-3 text-emerald-600">Sống</th>
+                    <th class="px-4 py-3 text-rose-600">Chết</th>
+                    <th class="px-4 py-3 text-amber-600">Con Yếu</th>
+                    <th class="px-4 py-3">TL Sơ Sinh TB</th>
+                    <th class="px-4 py-3">Ghi Chú Hỗ Trợ Sinh</th>
+                  </tr>
+                </thead>
+                <tbody id="farrow-table-body" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 5: PIGLET & LITTER MANAGEMENT (QUẢN LÝ HEO CON) -->
+        <section id="tab-piglets" class="tab-content hidden space-y-6">
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm"
+          >
+            <div>
+              <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                <i class="fa-solid fa-paw text-amber-600 mr-2"></i> 5. Quản Lý Đàn Heo Con & Cai Sữa
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">
+                Sức khỏe heo con theo đàn, tiêm sắt, bấm răng, theo dõi tăng trưởng, cai sữa và tỷ lệ hao hụt.
+              </p>
+            </div>
+            <button
+              onclick="openModal('modal-add-piglet-batch')"
+              class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition shadow-md shadow-amber-600/20"
+            >
+              <i class="fa-solid fa-plus"></i> Tạo Đàn Heo Mới
+            </button>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead
+                  class="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200/80"
+                >
+                  <tr>
+                    <th class="px-4 py-3">Mã Đàn / Mã Con</th>
+                    <th class="px-4 py-3">Ngày Sinh</th>
+                    <th class="px-4 py-3">Nái Mẹ</th>
+                    <th class="px-4 py-3">Số Lượng Hiên Tại</th>
+                    <th class="px-4 py-3">TL Trung Bình</th>
+                    <th class="px-4 py-3">Giai Đoạn</th>
+                    <th class="px-4 py-3">Sức Khỏe</th>
+                    <th class="px-4 py-3">Dự Kiến Cai Sữa</th>
+                    <th class="px-4 py-3 text-right">Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody id="piglet-table-body" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 6: FEED MANAGEMENT (QUẢN LÝ THỨC ĂN) -->
+        <section id="tab-feed" class="tab-content hidden space-y-6">
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm"
+          >
+            <div>
+              <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                <i class="fa-solid fa-wheat-awn text-yellow-600 mr-2"></i> 6. Quản Lý Thức Ăn & Cám
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">
+                Định lượng tiêu thụ cám/ngày cho nái chửa, nái đẻ, heo tập ăn, heo thịt & tổng chi phí cám.
+              </p>
+            </div>
+            <button
+              onclick="openModal('modal-add-feed')"
+              class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition shadow-md shadow-yellow-600/20"
+            >
+              <i class="fa-solid fa-plus"></i> Ghi Nhận Nhập/Tiêu Thụ Cám
+            </button>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead
+                  class="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200/80"
+                >
+                  <tr>
+                    <th class="px-4 py-3">Ngày</th>
+                    <th class="px-4 py-3">Loại Thức Ăn / Mã Cám</th>
+                    <th class="px-4 py-3">Nhóm / Đàn Sử Dụng</th>
+                    <th class="px-4 py-3">Số Lượng (Kg)</th>
+                    <th class="px-4 py-3">Lượng Ăn/Con/Ngày</th>
+                    <th class="px-4 py-3">Đơn Giá / Kg</th>
+                    <th class="px-4 py-3 text-right">Thành Tiền (VNĐ)</th>
+                  </tr>
+                </thead>
+                <tbody id="feed-table-body" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 7 & 8: VACCINE & HEALTH MANAGEMENT (QUẢN LÝ VACCINE & SỨC KHỎE) -->
+        <section id="tab-health" class="tab-content hidden space-y-6">
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm"
+          >
+            <div>
+              <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                <i class="fa-solid fa-syringe text-emerald-600 mr-2"></i> 7 & 8. Quản Lý Thuốc, Vaccine & Sức Khỏe
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">
+                Lịch tiêm phòng, nhật ký điều trị heo bệnh, chẩn đoán, thuốc sử dụng và theo dõi heo chết/loại thải.
+              </p>
+            </div>
+            <button
+              onclick="openModal('modal-add-health')"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition shadow-md shadow-emerald-600/20"
+            >
+              <i class="fa-solid fa-plus"></i> Ghi Nhận Sức Khỏe / Tiêm Thuốc
+            </button>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead
+                  class="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200/80"
+                >
+                  <tr>
+                    <th class="px-4 py-3">Ngày Ghi Nhận</th>
+                    <th class="px-4 py-3">Heo / Đàn</th>
+                    <th class="px-4 py-3">Phân Loại</th>
+                    <th class="px-4 py-3">Tên Vaccine / Thuốc / Triệu Chứng</th>
+                    <th class="px-4 py-3">Liều Dùng / Chẩn Đoán</th>
+                    <th class="px-4 py-3">Trạng Thái Điều Trị</th>
+                    <th class="px-4 py-3">Lịch Tiêm Tiếp Theo</th>
+                    <th class="px-4 py-3 text-right">Chi Phí</th>
+                  </tr>
+                </thead>
+                <tbody id="health-table-body" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 9: PEN / BARN MANAGEMENT (QUẢN LÝ CHUỒNG) -->
+        <section id="tab-pens" class="tab-content hidden space-y-6">
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm"
+          >
+            <div>
+              <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                <i class="fa-solid fa-warehouse text-blue-600 mr-2"></i> 9. Quản Lý Chuồng Trại
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">
+                Tình trạng các dãy chuồng: Khu nái mang thai, khu đẻ nuôi con, khu cai sữa, khu nuôi thịt.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="pens-container">
+            <!-- Populated by JS -->
+          </div>
+        </section>
+
+        <!-- TAB 10: PIG SALES MANAGEMENT (QUẢN LÝ BÁN HEO) -->
+        <section id="tab-sales" class="tab-content hidden space-y-6">
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm"
+          >
+            <div>
+              <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                <i class="fa-solid fa-money-bill-trend-up text-emerald-600 mr-2"></i> 10. Quản Lý Bán Heo & Hóa Đơn
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">
+                Lịch sử bán heo giống, heo con cai sữa, heo thịt thành phẩm, đơn giá/kg, khách mua.
+              </p>
+            </div>
+            <button
+              onclick="openModal('modal-add-sale')"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition shadow-md shadow-emerald-600/20"
+            >
+              <i class="fa-solid fa-plus"></i> Tạo Phiếu Bán Heo
+            </button>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead
+                  class="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200/80"
+                >
+                  <tr>
+                    <th class="px-4 py-3">Ngày Bán</th>
+                    <th class="px-4 py-3">Đàn / Con Bán</th>
+                    <th class="px-4 py-3">Người Mua</th>
+                    <th class="px-4 py-3">Số Lượng (Con)</th>
+                    <th class="px-4 py-3">Tổng Trọng Lượng (Kg)</th>
+                    <th class="px-4 py-3">Giá / Kg</th>
+                    <th class="px-4 py-3 text-right font-bold text-emerald-700">Tổng Tiền (VNĐ)</th>
+                  </tr>
+                </thead>
+                <tbody id="sales-table-body" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 11: EXPENSES MANAGEMENT (QUẢN LÝ CHI PHÍ) -->
+        <section id="tab-expenses" class="tab-content hidden space-y-6">
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm"
+          >
+            <div>
+              <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                <i class="fa-solid fa-receipt text-rose-600 mr-2"></i> 11. Sổ Sách Quản Lý Chi Phí
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">
+                Phân loại toàn bộ chi phí: Con giống, Thức ăn, Thuốc, Điện, Nước, Nhân công, Chuồng trại, Vận chuyển.
+              </p>
+            </div>
+            <button
+              onclick="openModal('modal-add-expense')"
+              class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition shadow-md shadow-rose-600/20"
+            >
+              <i class="fa-solid fa-plus"></i> Ghi Nhận Chi Phí
+            </button>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead
+                  class="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200/80"
+                >
+                  <tr>
+                    <th class="px-4 py-3">Ngày Khởi Tạo</th>
+                    <th class="px-4 py-3">Danh Mục Chi Phí</th>
+                    <th class="px-4 py-3">Nội Dung Chi Chốt</th>
+                    <th class="px-4 py-3 text-right font-bold text-rose-700">Số Tiền (VNĐ)</th>
+                  </tr>
+                </thead>
+                <tbody id="expenses-table-body" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 12: REVENUE & PROFIT ANALYSIS (DOANH THU & LỢI NHUẬN) -->
+        <section id="tab-profit" class="tab-content hidden space-y-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+            <h2 class="text-xl font-bold text-slate-800 flex items-center">
+              <i class="fa-solid fa-chart-line text-teal-600 mr-2"></i> 12. Phân Tích Doanh Thu, Lợi Nhuận & Hiệu Quả
+              Nái
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">
+              Báo cáo kinh doanh tự động: Lợi nhuận ròng, chi phí bình quân/heo con, ROI từng heo nái sinh sản.
+            </p>
+          </div>
+
+          <!-- Overall Financial Summary Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl">
+              <div class="text-xs font-bold text-emerald-800 uppercase">Tổng Doanh Thu Bán Heo</div>
+              <div class="text-2xl font-black text-emerald-700 mt-2" id="prof-total-revenue">0 đ</div>
+              <p class="text-[11px] text-emerald-600 mt-1">Bao gồm heo thịt & heo giống</p>
+            </div>
+
+            <div class="bg-rose-50 border border-rose-200 p-5 rounded-2xl">
+              <div class="text-xs font-bold text-rose-800 uppercase">Tổng Chi Phí Hoạt Động</div>
+              <div class="text-2xl font-black text-rose-700 mt-2" id="prof-total-expense">0 đ</div>
+              <p class="text-[11px] text-rose-600 mt-1">Cám, thuốc, điện nước, nhân công</p>
+            </div>
+
+            <div class="bg-teal-50 border border-teal-200 p-5 rounded-2xl">
+              <div class="text-xs font-bold text-teal-800 uppercase">Lợi Nhuận Ròng Thu Được</div>
+              <div class="text-2xl font-black text-teal-700 mt-2" id="prof-net-profit">0 đ</div>
+              <p class="text-[11px] text-teal-600 mt-1">Lợi nhuận ròng sau chi phí</p>
+            </div>
+          </div>
+
+          <!-- Per Sow Profitability Breakdown -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-5">
+            <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center">
+              <i class="fa-solid fa-award text-amber-500 mr-2"></i> Hiệu Quả Lợi Nhuận Theo Từng Heo Nái (Sow
+              Profitability)
+            </h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                  <tr>
+                    <th class="px-4 py-2.5">Mã Nái</th>
+                    <th class="px-4 py-2.5">Tổng Lứa Đẻ</th>
+                    <th class="px-4 py-2.5">Tổng Con Cai Sữa</th>
+                    <th class="px-4 py-2.5">Doanh Thu Tạo Ra</th>
+                    <th class="px-4 py-2.5">Ước Tính Chi Phí Nái & Con</th>
+                    <th class="px-4 py-2.5 text-right">Lợi Nhuận Ước Tính</th>
+                  </tr>
+                </thead>
+                <tbody id="sow-profit-table-body" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 14: CALENDAR & REMINDERS (LỊCH & THÔNG BÁO) -->
+        <section id="tab-calendar" class="tab-content hidden space-y-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+            <h2 class="text-xl font-bold text-slate-800 flex items-center">
+              <i class="fa-solid fa-calendar-days text-sky-600 mr-2"></i> 14. Lịch Nhắc Việc & Cảnh Báo Sắp Tới
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">
+              Lịch nhắc tự động: Lịch phối, Lịch dự kiến đẻ, Lịch tiêm Vaccine, Lịch cai sữa, Lịch xuất bán.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+              <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2">
+                Danh Sách Công Việc Tự Động Tạo Hàng Ngày
+              </h3>
+              <div class="space-y-3" id="calendar-event-list">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+              <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2">Chú Giải Ký Hiệu Lịch</h3>
+              <ul class="space-y-2.5 text-xs text-slate-600">
+                <li class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-purple-500"></span> 🧬 Lịch Phối & Kiểm Tra Động Dục
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-rose-500"></span> 🤰 Lịch Nái Đẻ (Dự sinh 114 ngày)
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-emerald-500"></span> 💉 Lịch Tiêm Sắt & Vaccine Heo Con
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-amber-500"></span> 🐷 Lịch Cai Sữa Heo Con (21-28 ngày)
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-blue-500"></span> 💰 Lịch Dự Kiến Bán Heo Thịt
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- MODALS SECTION -->
+
+    <!-- Modal 1: Quick Action Choice -->
+    <div
+      id="modal-add-action"
+      class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h3 class="font-bold text-slate-800 text-base">Chọn Thao Tác Ghi Nhận Mới</h3>
+          <button onclick="closeModal('modal-add-action')" class="text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <button
+            onclick="
+              closeModal('modal-add-action');
+              openModal('modal-add-sow');
+            "
+            class="p-3 bg-pink-50 hover:bg-pink-100 border border-pink-200 text-pink-700 rounded-xl font-semibold flex flex-col items-center gap-2 text-center transition"
+          >
+            <i class="fa-solid fa-piggy-bank text-xl"></i> Thêm Nái Mới
+          </button>
+          <button
+            onclick="
+              closeModal('modal-add-action');
+              openModal('modal-add-mating');
+            "
+            class="p-3 bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 rounded-xl font-semibold flex flex-col items-center gap-2 text-center transition"
+          >
+            <i class="fa-solid fa-dna text-xl"></i> Ghi Nhận Phối Giống
+          </button>
+          <button
+            onclick="
+              closeModal('modal-add-action');
+              openModal('modal-add-farrow');
+            "
+            class="p-3 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-xl font-semibold flex flex-col items-center gap-2 text-center transition"
+          >
+            <i class="fa-solid fa-heart-pulse text-xl"></i> Ghi Nhận Ca Sinh
+          </button>
+          <button
+            onclick="
+              closeModal('modal-add-action');
+              openModal('modal-add-feed');
+            "
+            class="p-3 bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 text-yellow-700 rounded-xl font-semibold flex flex-col items-center gap-2 text-center transition"
+          >
+            <i class="fa-solid fa-wheat-awn text-xl"></i> Ghi Tiêu Thụ Cám
+          </button>
+          <button
+            onclick="
+              closeModal('modal-add-action');
+              openModal('modal-add-health');
+            "
+            class="p-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-xl font-semibold flex flex-col items-center gap-2 text-center transition"
+          >
+            <i class="fa-solid fa-syringe text-xl"></i> Ghi Vaccine/Sức Khỏe
+          </button>
+          <button
+            onclick="
+              closeModal('modal-add-action');
+              openModal('modal-add-sale');
+            "
+            class="p-3 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-700 rounded-xl font-semibold flex flex-col items-center gap-2 text-center transition"
+          >
+            <i class="fa-solid fa-money-bill-wave text-xl"></i> Tạo Phiếu Bán Heo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 2: Add Sow -->
+    <div
+      id="modal-add-sow"
+      class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h3 class="font-bold text-slate-800 text-base">Thêm Nái Mới Vào Đàn</h3>
+          <button onclick="closeModal('modal-add-sow')" class="text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <form id="form-add-sow" onsubmit="handleAddSow(event)" class="space-y-3 text-xs">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Mã Heo Nái *</label>
+              <input
+                type="text"
+                id="sow-id"
+                required
+                placeholder="Ví dụ: NAI-026"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Giống Heo</label>
+              <select
+                id="sow-breed"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-pink-500"
+              >
+                <option value="Landrace">Landrace</option>
+                <option value="Yorkshire">Yorkshire</option>
+                <option value="Duroc">Duroc</option>
+                <option value="F1 Landrace x Yorkshire">F1 (Landrace x Yorkshire)</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Ngày Sinh</label>
+              <input
+                type="date"
+                id="sow-birth"
+                required
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Trọng Lượng (Kg)</label>
+              <input
+                type="number"
+                id="sow-weight"
+                value="180"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Nguồn Gốc</label>
+              <input
+                type="text"
+                id="sow-origin"
+                value="Trang trại mua giống CP"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Vị Trí Chuồng</label>
+              <select
+                id="sow-pen"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-pink-500"
+              >
+                <option value="Chuồng Nái 01">Chuồng Nái 01</option>
+                <option value="Chuồng Nái 02">Chuồng Nái 02</option>
+                <option value="Chuồng Đẻ 01">Chuồng Đẻ 01</option>
+              </select>
+            </div>
+          </div>
+          <div class="pt-2 flex justify-end gap-2">
+            <button
+              type="button"
+              onclick="closeModal('modal-add-sow')"
+              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-semibold"
+            >
+              Hủy
+            </button>
+            <button type="submit" class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg font-semibold">
+              Lưu Nái Mới
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 3: Add Mating Record -->
+    <div
+      id="modal-add-mating"
+      class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h3 class="font-bold text-slate-800 text-base">Ghi Nhận Phối Giống Nái</h3>
+          <button onclick="closeModal('modal-add-mating')" class="text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <form id="form-add-mating" onsubmit="handleAddMating(event)" class="space-y-3 text-xs">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Chọn Nái Phối *</label>
+              <select
+                id="mating-sow-id"
+                required
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-purple-500"
+              >
+                <!-- Populated by JS -->
+              </select>
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Ngày Phối *</label>
+              <input
+                type="date"
+                id="mating-date"
+                required
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Heo Đực / Tinh Phối</label>
+              <input
+                type="text"
+                id="mating-boar"
+                value="Tinh Duroc Ngoại D01"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Số Lần Phối</label>
+              <input
+                type="number"
+                id="mating-count"
+                value="2"
+                min="1"
+                max="5"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+          </div>
+          <div class="pt-2 flex justify-end gap-2">
+            <button
+              type="button"
+              onclick="closeModal('modal-add-mating')"
+              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-semibold"
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold"
+            >
+              Lưu Phối Giống
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 4: Add Farrow Record -->
+    <div
+      id="modal-add-farrow"
+      class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h3 class="font-bold text-slate-800 text-base">Ghi Nhận Nái Sinh Sản (Đẻ)</h3>
+          <button onclick="closeModal('modal-add-farrow')" class="text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <form id="form-add-farrow" onsubmit="handleAddFarrow(event)" class="space-y-3 text-xs">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Mã Nái Mẹ *</label>
+              <select
+                id="farrow-sow-id"
+                required
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-rose-500"
+              >
+                <!-- Populated by JS -->
+              </select>
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Ngày Sinh *</label>
+              <input
+                type="date"
+                id="farrow-date"
+                required
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-rose-500"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Số Con Sống</label>
+              <input
+                type="number"
+                id="farrow-live"
+                value="12"
+                min="0"
+                required
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-rose-500"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Số Con Chết</label>
+              <input
+                type="number"
+                id="farrow-dead"
+                value="0"
+                min="0"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-rose-500"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Số Con Yếu</label>
+              <input
+                type="number"
+                id="farrow-weak"
+                value="1"
+                min="0"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-rose-500"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">TL Sơ Sinh TB (Kg)</label>
+              <input
+                type="number"
+                step="0.1"
+                id="farrow-weight"
+                value="1.4"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-rose-500"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Hỗ Trợ Sinh / Khó Đẻ</label>
+              <input
+                type="text"
+                id="farrow-note"
+                placeholder="Ví dụ: Đẻ tự nhiên, tiêm Oxytocin"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-rose-500"
+              />
+            </div>
+          </div>
+          <div class="pt-2 flex justify-end gap-2">
+            <button
+              type="button"
+              onclick="closeModal('modal-add-farrow')"
+              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-semibold"
+            >
+              Hủy
+            </button>
+            <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-semibold">
+              Lưu Ca Sinh
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 5: Add Feed Record -->
+    <div
+      id="modal-add-feed"
+      class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h3 class="font-bold text-slate-800 text-base">Ghi Nhận Sử Dụng Thức Ăn (Cám)</h3>
+          <button onclick="closeModal('modal-add-feed')" class="text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <form id="form-add-feed" onsubmit="handleAddFeed(event)" class="space-y-3 text-xs">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Loại Cám *</label>
+              <select
+                id="feed-type"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-yellow-500"
+              >
+                <option value="Cám Nái Chửa (C55)">Cám Nái Chửa (C55)</option>
+                <option value="Cám Nái Nuôi Con (C56)">Cám Nái Nuôi Con (C56)</option>
+                <option value="Cám Heo Tập Ăn (C11)">Cám Heo Tập Ăn (C11)</option>
+                <option value="Cám Heo Thịt (C22)">Cám Heo Thịt (C22)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Đàn / Chuồng Sử Dụng *</label>
+              <input
+                type="text"
+                id="feed-group"
+                required
+                placeholder="Ví dụ: Đàn Heo Con D-201 hoặc Chuồng Nái 01"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-yellow-500"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Số Lượng (Kg)</label>
+              <input
+                type="number"
+                id="feed-qty"
+                value="100"
+                required
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-yellow-500"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Lượng/Con/Ngày</label>
+              <input
+                type="number"
+                step="0.1"
+                id="feed-daily"
+                value="2.5"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-yellow-500"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Giá / Kg (VNĐ)</label>
+              <input
+                type="number"
+                id="feed-price"
+                value="14500"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-yellow-500"
+              />
+            </div>
+          </div>
+          <div class="pt-2 flex justify-end gap-2">
+            <button
+              type="button"
+              onclick="closeModal('modal-add-feed')"
+              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-semibold"
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-semibold"
+            >
+              Lưu Chi Phí Cám
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 6: Add Health & Vaccine Record -->
+    <div
+      id="modal-add-health"
+      class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h3 class="font-bold text-slate-800 text-base">Ghi Nhận Sức Khỏe / Vaccine</h3>
+          <button onclick="closeModal('modal-add-health')" class="text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <form id="form-add-health" onsubmit="handleAddHealth(event)" class="space-y-3 text-xs">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Heo / Đàn Bị Bệnh hoặc Tiêm</label>
+              <input
+                type="text"
+                id="health-target"
+                required
+                placeholder="Ví dụ: NAI-003 hoặc Đàn D-201"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Loại Ghi Nhận</label>
+              <select
+                id="health-type"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="Tiêm Vaccine">Tiêm Vaccine Định Kỳ</option>
+                <option value="Điều Trị Bệnh">Điều Trị Bệnh Mới Phát</option>
+                <option value="Tiêm Sắt">Tiêm Sắt Cho Heo Con</option>
+                <option value="Tử Vong">Heo Chết / Loại Thải</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Tên Thuốc / Vaccine / Triệu Chứng</label>
+              <input
+                type="text"
+                id="health-name"
+                required
+                placeholder="Ví dụ: Vaccine Dịch Tả (CSF) / Tiêu chảy"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Liều Dùng / Chẩn Đoán</label>
+              <input
+                type="text"
+                id="health-dose"
+                value="2 ml / con"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Trạng Thái</label>
+              <select
+                id="health-status"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="Đã Hoàn Thành">Đã Hoàn Thành</option>
+                <option value="Đang Điều Trị">Đang Điều Trị</option>
+                <option value="Đã Khỏi">Đã Khỏi</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Chi Phí (VNĐ)</label>
+              <input
+                type="number"
+                id="health-cost"
+                value="150000"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+          </div>
+          <div class="pt-2 flex justify-end gap-2">
+            <button
+              type="button"
+              onclick="closeModal('modal-add-health')"
+              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-semibold"
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold"
+            >
+              Lưu Nhật Ký Sức Khỏe
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 7: Add Sale Record -->
+    <div
+      id="modal-add-sale"
+      class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h3 class="font-bold text-slate-800 text-base">Tạo Hóa Đơn Xuất Bán Heo</h3>
+          <button onclick="closeModal('modal-add-sale')" class="text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <form id="form-add-sale" onsubmit="handleAddSale(event)" class="space-y-3 text-xs">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Đàn / Con Bán *</label>
+              <input
+                type="text"
+                id="sale-batch"
+                required
+                placeholder="Ví dụ: Đàn Heo Thịt T-102"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Tên Người Mua / Thương Lái</label>
+              <input
+                type="text"
+                id="sale-buyer"
+                required
+                value="Anh Hùng (Thương lái Đồng Nai)"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Số Lượng (Con)</label>
+              <input
+                type="number"
+                id="sale-qty"
+                value="15"
+                required
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Tổng Trọng Lượng (Kg)</label>
+              <input
+                type="number"
+                id="sale-weight"
+                value="1650"
+                required
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Giá / Kg (VNĐ)</label>
+              <input
+                type="number"
+                id="sale-price-kg"
+                value="65000"
+                required
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+          </div>
+          <div class="pt-2 flex justify-end gap-2">
+            <button
+              type="button"
+              onclick="closeModal('modal-add-sale')"
+              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-semibold"
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold"
+            >
+              Lưu Hóa Đơn Bán
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 8: Add General Expense -->
+    <div
+      id="modal-add-expense"
+      class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h3 class="font-bold text-slate-800 text-base">Ghi Nhận Chi Phí Mới</h3>
+          <button onclick="closeModal('modal-add-expense')" class="text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <form id="form-add-expense" onsubmit="handleAddExpense(event)" class="space-y-3 text-xs">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Danh Mục Chi Phí</label>
+              <select
+                id="exp-category"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-rose-500"
+              >
+                <option value="Con giống">Con giống</option>
+                <option value="Thức ăn">Thức ăn / Cám</option>
+                <option value="Thuốc/Vaccine">Thuốc / Vaccine</option>
+                <option value="Tiền Điện">Tiền Điện Quạt / Sưởi</option>
+                <option value="Tiền Nước">Tiền Nước Tắm Chuồng</option>
+                <option value="Nhân công">Lương Nhân Công</option>
+                <option value="Chuồng trại">Bảo Trì Chuồng Trại</option>
+                <option value="Vận chuyển">Chi Phí Vận Chuyển</option>
+                <option value="Chi phí khác">Chi Phí Khác</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Số Tiền Chi (VNĐ) *</label>
+              <input
+                type="number"
+                id="exp-amount"
+                required
+                value="2500000"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-rose-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Nội Dung Ghi Chú</label>
+            <input
+              type="text"
+              id="exp-desc"
+              required
+              placeholder="Nội dung thanh toán..."
+              class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-rose-500"
+            />
+          </div>
+          <div class="pt-2 flex justify-end gap-2">
+            <button
+              type="button"
+              onclick="closeModal('modal-add-expense')"
+              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-semibold"
+            >
+              Hủy
+            </button>
+            <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-semibold">
+              Lưu Chi Phí
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+      // APP INITIAL STATE & DUMMY DATA FOR REALISTIC FARM MANAGEMENT
+
+      // 1. Sows Data
+      let sowsData = [
+        {
+          id: "NAI-001",
+          breed: "Landrace",
+          birthDate: "2024-02-15",
+          weight: 195,
+          origin: "CP Vietnam",
+          health: "Tốt",
+          parityCount: 3,
+          status: "Mang thai",
+          pen: "Chuồng Nái 01",
+        },
+        {
+          id: "NAI-002",
+          breed: "Yorkshire",
+          birthDate: "2024-03-10",
+          weight: 185,
+          origin: "Dabaco",
+          health: "Tốt",
+          parityCount: 2,
+          status: "Mang thai",
+          pen: "Chuồng Nái 01",
+        },
+        {
+          id: "NAI-003",
+          breed: "F1 (Landrace x Yorkshire)",
+          birthDate: "2024-01-20",
+          weight: 210,
+          origin: "Trang trại nhà",
+          health: "Theo dõi",
+          parityCount: 4,
+          status: "Đang nuôi con",
+          pen: "Chuồng Đẻ 01",
+        },
+        {
+          id: "NAI-004",
+          breed: "Landrace",
+          birthDate: "2024-04-05",
+          weight: 175,
+          origin: "CP Vietnam",
+          health: "Tốt",
+          parityCount: 1,
+          status: "Sẵn sàng",
+          pen: "Chuồng Nái 02",
+        },
+        {
+          id: "NAI-005",
+          breed: "Duroc",
+          birthDate: "2024-02-28",
+          weight: 200,
+          origin: "Japfa",
+          health: "Tốt",
+          parityCount: 2,
+          status: "Đã phối",
+          pen: "Chuồng Nái 02",
+        },
+      ];
+
+      // 2. Mating Data
+      let matingLogs = [
+        {
+          id: 1,
+          sowId: "NAI-001",
+          heatDate: "2026-05-18",
+          matingDate: "2026-05-20",
+          boarId: "Tinh Duroc D-01",
+          count: 2,
+          result: "Đã đậu thai",
+          expectedFarrow: "2026-09-11",
+        },
+        {
+          id: 2,
+          sowId: "NAI-002",
+          heatDate: "2026-06-01",
+          matingDate: "2026-06-03",
+          boarId: "Tinh Landrace L-02",
+          count: 2,
+          result: "Đã đậu thai",
+          expectedFarrow: "2026-09-25",
+        },
+        {
+          id: 3,
+          sowId: "NAI-005",
+          heatDate: "2026-08-25",
+          matingDate: "2026-08-27",
+          boarId: "Tinh Duroc D-02",
+          count: 2,
+          result: "Mới phối",
+          expectedFarrow: "2026-12-19",
+        },
+      ];
+
+      // 3. Farrowing Data (Births)
+      let farrowLogs = [
+        {
+          id: 101,
+          sowId: "NAI-003",
+          farrowDate: "2026-08-10",
+          batchCode: "DAN-201",
+          totalBorn: 14,
+          liveBorn: 13,
+          deadBorn: 1,
+          weakBorn: 1,
+          avgWeight: 1.4,
+          note: "Hỗ trợ tiêm oxytocin",
+        },
+        {
+          id: 102,
+          sowId: "NAI-001",
+          farrowDate: "2026-04-12",
+          batchCode: "DAN-102",
+          totalBorn: 12,
+          liveBorn: 12,
+          deadBorn: 0,
+          weakBorn: 0,
+          avgWeight: 1.5,
+          note: "Sinh tự nhiên hoàn toàn",
+        },
+      ];
+
+      // 4. Piglet Batches Data
+      let pigletBatches = [
+        {
+          code: "DAN-201",
+          birthDate: "2026-08-10",
+          sowId: "NAI-003",
+          count: 12,
+          avgWeight: 6.2,
+          stage: "Bú mẹ (Tập ăn)",
+          health: "Tốt",
+          targetWean: "2026-09-07",
+          pen: "Chuồng Đẻ 01",
+        },
+        {
+          code: "DAN-102",
+          birthDate: "2026-04-12",
+          sowId: "NAI-001",
+          count: 12,
+          avgWeight: 85.0,
+          stage: "Heo ThịtXuất Bán",
+          health: "Tốt",
+          targetWean: "2026-05-10",
+          pen: "Chuồng Thịt A",
+        },
+      ];
+
+      // 5. Feed Logs Data
+      let feedLogs = [
+        {
+          id: 1,
+          date: "2026-09-08",
+          feedType: "Cám Nái Nuôi Con (C56)",
+          targetGroup: "Chuồng Đẻ 01",
+          qtyKg: 60,
+          dailyPerHead: 5.0,
+          pricePerKg: 15500,
+          totalCost: 930000,
+        },
+        {
+          id: 2,
+          date: "2026-09-09",
+          feedType: "Cám Heo Thịt (C22)",
+          targetGroup: "Chuồng Thịt A",
+          qtyKg: 200,
+          dailyPerHead: 2.5,
+          pricePerKg: 14000,
+          totalCost: 2800000,
+        },
+        {
+          id: 3,
+          date: "2026-09-10",
+          feedType: "Cám Nái Chửa (C55)",
+          targetGroup: "Chuồng Nái 01",
+          qtyKg: 80,
+          dailyPerHead: 2.2,
+          pricePerKg: 14500,
+          totalCost: 1160000,
+        },
+      ];
+
+      // 6. Health & Vaccine Logs Data
+      let healthLogs = [
+        {
+          id: 1,
+          date: "2026-08-13",
+          target: "DAN-201",
+          category: "Tiêm Sắt",
+          name: "Dextran Iron (Mũi 1)",
+          dose: "1ml / con",
+          status: "Đã Hoàn Thành",
+          cost: 120000,
+          nextDate: "2026-08-20",
+        },
+        {
+          id: 2,
+          date: "2026-09-02",
+          target: "NAI-002",
+          category: "Tiêm Vaccine",
+          name: "Vaccine Dịch Tả Heo (CSF)",
+          dose: "2ml",
+          status: "Đã Hoàn Thành",
+          cost: 4500,
+          nextDate: "2027-03-02",
+        },
+        {
+          id: 3,
+          date: "2026-09-08",
+          target: "DAN-201",
+          category: "Điều Trị Bệnh",
+          name: "Phân trắng heo con",
+          dose: "Tiêm Enrofloxacin 2 ngày",
+          status: "Đang Điều Trị",
+          cost: 180000,
+          nextDate: "2026-09-11",
+        },
+      ];
+
+      // 7. Pens Data
+      let pensData = [
+        {
+          id: 1,
+          name: "Chuồng Nái 01",
+          type: "Nái Mang Thai",
+          current: 10,
+          capacity: 12,
+          temp: "27°C",
+          hygiene: "Sạch sẽ",
+          status: "Tốt",
+        },
+        {
+          id: 2,
+          name: "Chuồng Đẻ 01",
+          type: "Nái Sinh Sản & Piglet",
+          current: 4,
+          capacity: 6,
+          temp: "30°C (Đèn sưởi)",
+          hygiene: "Khử trùng xong",
+          status: "Tốt",
+        },
+        {
+          id: 3,
+          name: "Chuồng Cai Sữa 01",
+          type: "Heo Con Cai Sữa",
+          current: 28,
+          capacity: 40,
+          temp: "28°C",
+          hygiene: "Sạch sẽ",
+          status: "Tốt",
+        },
+        {
+          id: 4,
+          name: "Chuồng Thịt A",
+          type: "Nuôi Heo Thịt",
+          current: 50,
+          capacity: 60,
+          temp: "29°C",
+          hygiene: "Tắm rửa 2 lần/ngày",
+          status: "Cần bảo trì quạt",
+        },
+      ];
+
+      // 8. Sales Logs Data
+      let salesLogs = [
+        {
+          id: 1,
+          date: "2026-08-28",
+          batchCode: "Đàn Heo Thịt T-09",
+          buyer: "Anh Hùng - Lái Biên Hòa",
+          qty: 20,
+          weightKg: 2150,
+          pricePerKg: 64000,
+          totalRev: 137600000,
+        },
+        {
+          id: 2,
+          date: "2026-09-05",
+          batchCode: "Heo Giống Cai Sữa G-12",
+          buyer: "Trang trại Chú Tư",
+          qty: 10,
+          weightKg: 120,
+          pricePerKg: 120000,
+          totalRev: 14400000,
+        },
+      ];
+
+      // 9. Expenses Logs Data
+      let expensesLogs = [
+        { id: 1, date: "2026-09-01", category: "Thức ăn", desc: "Nhập 3 tấn Cám CP các loại", amount: 43500000 },
+        {
+          id: 2,
+          date: "2026-09-03",
+          category: "Thuốc/Vaccine",
+          desc: "Mua bổ sung Vắc-xin Lợn Tai Xanh & Kháng sinh",
+          amount: 6200000,
+        },
+        {
+          id: 3,
+          date: "2026-09-05",
+          category: "Tiền Điện",
+          desc: "Thanh toán hóa đơn điện chạy quạt & đèn sưởi",
+          amount: 4800000,
+        },
+        {
+          id: 4,
+          date: "2026-09-06",
+          category: "Nhân công",
+          desc: "Lương 2 công nhân chăn nuôi tháng 8",
+          amount: 16000000,
+        },
+      ];
+
+      // INITIALIZE CHART JS GRAPHICS
+      let chartFinancialsInstance = null;
+      let chartSowStatusInstance = null;
+
+      function initCharts() {
+        // Chart 1: Financial Bar Chart
+        const ctxFin = document.getElementById("chartFinancials").getContext("2d");
+        if (chartFinancialsInstance) chartFinancialsInstance.destroy();
+
+        chartFinancialsInstance = new Chart(ctxFin, {
+          type: "bar",
+          data: {
+            labels: ["Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9 (Hiện tại)"],
+            datasets: [
+              {
+                label: "Doanh Thu (Trđ)",
+                data: [110, 145, 130, 180, 152, 152],
+                backgroundColor: "#10b981",
+                borderRadius: 6,
+              },
+              {
+                label: "Chi Phí (Trđ)",
+                data: [75, 80, 85, 95, 70, 70.5],
+                backgroundColor: "#f43f5e",
+                borderRadius: 6,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: "top", labels: { font: { size: 11 } } } },
+            scales: { y: { beginAtZero: true } },
+          },
+        });
+
+        // Chart 2: Sow Status Doughnut Chart
+        const ctxSow = document.getElementById("chartSowStatus").getContext("2d");
+        if (chartSowStatusInstance) chartSowStatusInstance.destroy();
+
+        chartSowStatusInstance = new Chart(ctxSow, {
+          type: "doughnut",
+          data: {
+            labels: ["Mang Thai", "Đang Nuôi Con", "Sẵn Sàng Phối", "Vừa Phối"],
+            datasets: [
+              {
+                data: [12, 6, 3, 4],
+                backgroundColor: ["#6366f1", "#f43f5e", "#10b981", "#a855f7"],
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: "bottom", labels: { font: { size: 11 } } } },
+          },
+        });
+      }
+
+      // RENDER UI & DATA TABLES
+
+      function renderAllData() {
+        renderSowsTable();
+        renderMatingTable();
+        renderGestationCards();
+        renderFarrowTable();
+        renderPigletTable();
+        renderFeedTable();
+        renderHealthTable();
+        renderPensGrid();
+        renderSalesTable();
+        renderExpensesTable();
+        renderProfitTab();
+        renderCalendarTab();
+        renderDashboardWidgets();
+        populateSelectOptions();
+      }
+
+      // 1. Sow Table
+      function renderSowsTable() {
+        const tbody = document.getElementById("sow-table-body");
+        tbody.innerHTML = "";
+
+        sowsData.forEach((sow) => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50 transition";
+
+          let badgeColor = "bg-slate-100 text-slate-700";
+          if (sow.status === "Mang thai") badgeColor = "bg-indigo-100 text-indigo-700 font-semibold";
+          if (sow.status === "Đang nuôi con") badgeColor = "bg-rose-100 text-rose-700 font-semibold";
+          if (sow.status === "Sẵn sàng") badgeColor = "bg-emerald-100 text-emerald-700 font-semibold";
+          if (sow.status === "Đã phối") badgeColor = "bg-purple-100 text-purple-700 font-semibold";
+
+          tr.innerHTML = `
+                    <td class="px-4 py-3 font-bold text-pink-700">${sow.id}</td>
+                    <td class="px-4 py-3 font-medium">${sow.breed}</td>
+                    <td class="px-4 py-3">${sow.birthDate}</td>
+                    <td class="px-4 py-3">${sow.weight} kg</td>
+                    <td class="px-4 py-3 text-slate-500">${sow.origin}</td>
+                    <td class="px-4 py-3"><span class="px-2.5 py-1 rounded-full text-[11px] ${badgeColor}">${sow.status}</span></td>
+                    <td class="px-4 py-3 font-semibold text-center">${sow.parityCount}</td>
+                    <td class="px-4 py-3 text-slate-600">${sow.pen}</td>
+                    <td class="px-4 py-3 text-right space-x-1">
+                        <button onclick="deleteSow('${sow.id}')" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+          tbody.appendChild(tr);
+        });
+
+        // Update Header Counts
+        document.getElementById("dash-sow-total").innerText = sowsData.length;
+        document.getElementById("pipe-sow-count").innerText = sowsData.length;
+      }
+
+      function filterSowTable() {
+        const query = document.getElementById("search-sow").value.toLowerCase();
+        const statusFilter = document.getElementById("filter-sow-status").value;
+        const rows = document.querySelectorAll("#sow-table-body tr");
+
+        rows.forEach((row) => {
+          const text = row.innerText.toLowerCase();
+          const matchesSearch = text.includes(query);
+          const matchesStatus = !statusFilter || text.includes(statusFilter.toLowerCase());
+
+          if (matchesSearch && matchesStatus) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
+          }
+        });
+      }
+
+      function deleteSow(id) {
+        sowsData = sowsData.filter((s) => s.id !== id);
+        renderAllData();
+      }
+
+      // 2. Mating Table
+      function renderMatingTable() {
+        const tbody = document.getElementById("mating-table-body");
+        tbody.innerHTML = "";
+
+        matingLogs.forEach((m) => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50 transition";
+          tr.innerHTML = `
+                    <td class="px-4 py-3 font-bold text-purple-700">${m.sowId}</td>
+                    <td class="px-4 py-3">${m.heatDate}</td>
+                    <td class="px-4 py-3 font-semibold">${m.matingDate}</td>
+                    <td class="px-4 py-3">${m.boarId}</td>
+                    <td class="px-4 py-3 font-semibold text-center">${m.count}</td>
+                    <td class="px-4 py-3"><span class="bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-medium text-[11px]">${m.result}</span></td>
+                    <td class="px-4 py-3 font-bold text-rose-600">${m.expectedFarrow}</td>
+                    <td class="px-4 py-3 text-right">
+                        <button onclick="deleteMating(${m.id})" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+          tbody.appendChild(tr);
+        });
+        document.getElementById("pipe-mating-count").innerText = matingLogs.length;
+      }
+
+      function deleteMating(id) {
+        matingLogs = matingLogs.filter((m) => m.id !== id);
+        renderAllData();
+      }
+
+      // 3. Gestation Cards
+      function renderGestationCards() {
+        const container = document.getElementById("gestation-cards-container");
+        container.innerHTML = "";
+
+        const pregnantSows = sowsData.filter((s) => s.status === "Mang thai");
+        document.getElementById("pipe-gestation-count").innerText = pregnantSows.length;
+
+        if (pregnantSows.length === 0) {
+          container.innerHTML = `<div class="col-span-full p-8 text-center text-slate-400">Không có heo nái nào đang trong thai kỳ.</div>`;
+          return;
+        }
+
+        pregnantSows.forEach((sow) => {
+          const mating = matingLogs.find((m) => m.sowId === sow.id) || {
+            matingDate: "2026-05-20",
+            expectedFarrow: "2026-09-11",
+          };
+
+          // Calculate days gestation (mocked based on today approx 2026-09-10)
+          const daysGestation = 113; // Example near birth
+          const progressPercent = Math.min(100, Math.round((daysGestation / 114) * 100));
+
+          const div = document.createElement("div");
+          div.className = "bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3";
+          div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-xs font-bold text-pink-600 uppercase">Mã Nái: ${sow.id}</span>
+                            <h4 class="text-base font-bold text-slate-800">${sow.breed} (Lứa ${sow.parityCount})</h4>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-full">Ngày thai: ${daysGestation}/114</span>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div>
+                        <div class="flex justify-between text-[11px] text-slate-500 mb-1">
+                            <span>Tiến trình mang thai</span>
+                            <span class="font-bold text-indigo-600">${progressPercent}%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2">
+                            <div class="bg-indigo-600 h-2 rounded-full" style="width: ${progressPercent}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="text-xs space-y-1 text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div class="flex justify-between"><span>Ngày phối:</span> <strong class="text-slate-800">${mating.matingDate}</strong></div>
+                        <div class="flex justify-between"><span>Dự kiến đẻ:</span> <strong class="text-rose-600 font-bold">${mating.expectedFarrow}</strong></div>
+                        <div class="flex justify-between"><span>Thức ăn:</span> <span>Cám Nái Chửa (2.2kg/ngày)</span></div>
+                        <div class="flex justify-between"><span>Vaccine thai kỳ:</span> <span class="text-emerald-600 font-medium"><i class="fa-solid fa-check"></i> Đã tiêm</span></div>
+                    </div>
+
+                    <div class="pt-1 flex gap-2">
+                        <button onclick="switchTab('tab-farrowing'); openModal('modal-add-farrow');" class="w-full text-center py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold transition">
+                            <i class="fa-solid fa-heart-pulse mr-1"></i> Chuyển Sang Chuồng Đẻ
+                        </button>
+                    </div>
+                `;
+          container.appendChild(div);
+        });
+      }
+
+      // 4. Farrowing Table
+      function renderFarrowTable() {
+        const tbody = document.getElementById("farrow-table-body");
+        tbody.innerHTML = "";
+
+        farrowLogs.forEach((f) => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50 transition";
+          tr.innerHTML = `
+                    <td class="px-4 py-3 font-bold text-rose-700">${f.sowId}</td>
+                    <td class="px-4 py-3 font-medium">${f.farrowDate}</td>
+                    <td class="px-4 py-3"><span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">${f.batchCode}</span></td>
+                    <td class="px-4 py-3 font-bold text-center">${f.totalBorn}</td>
+                    <td class="px-4 py-3 font-bold text-emerald-600 text-center">${f.liveBorn}</td>
+                    <td class="px-4 py-3 font-bold text-rose-600 text-center">${f.deadBorn}</td>
+                    <td class="px-4 py-3 font-bold text-amber-600 text-center">${f.weakBorn}</td>
+                    <td class="px-4 py-3 text-center">${f.avgWeight} kg</td>
+                    <td class="px-4 py-3 text-slate-500">${f.note}</td>
+                `;
+          tbody.appendChild(tr);
+        });
+        document.getElementById("pipe-nursing-count").innerText = farrowLogs.length;
+      }
+
+      // 5. Piglets Table
+      function renderPigletTable() {
+        const tbody = document.getElementById("piglet-table-body");
+        tbody.innerHTML = "";
+
+        let totalPigletsCount = 0;
+        pigletBatches.forEach((p) => {
+          totalPigletsCount += p.count;
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50 transition";
+          tr.innerHTML = `
+                    <td class="px-4 py-3 font-bold text-amber-700">${p.code}</td>
+                    <td class="px-4 py-3">${p.birthDate}</td>
+                    <td class="px-4 py-3 font-medium text-pink-600">${p.sowId}</td>
+                    <td class="px-4 py-3 font-bold text-center text-slate-800">${p.count} con</td>
+                    <td class="px-4 py-3 font-semibold text-center">${p.avgWeight} kg</td>
+                    <td class="px-4 py-3"><span class="px-2.5 py-0.5 rounded-full text-[11px] bg-amber-100 text-amber-800 font-medium">${p.stage}</span></td>
+                    <td class="px-4 py-3 text-emerald-600 font-medium"><i class="fa-solid fa-circle text-[8px]"></i> ${p.health}</td>
+                    <td class="px-4 py-3 font-semibold text-indigo-600">${p.targetWean}</td>
+                    <td class="px-4 py-3 text-right">
+                        <button onclick="deletePigletBatch('${p.code}')" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById("dash-piglet-total").innerText = totalPigletsCount;
+        document.getElementById("pipe-piglet-count").innerText = totalPigletsCount;
+      }
+
+      function deletePigletBatch(code) {
+        pigletBatches = pigletBatches.filter((p) => p.code !== code);
+        renderAllData();
+      }
+
+      // 6. Feed Table
+      function renderFeedTable() {
+        const tbody = document.getElementById("feed-table-body");
+        tbody.innerHTML = "";
+
+        feedLogs.forEach((f) => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50 transition";
+          tr.innerHTML = `
+                    <td class="px-4 py-3 text-slate-500">${f.date}</td>
+                    <td class="px-4 py-3 font-bold text-yellow-700">${f.feedType}</td>
+                    <td class="px-4 py-3 font-medium">${f.targetGroup}</td>
+                    <td class="px-4 py-3 font-semibold">${f.qtyKg} kg</td>
+                    <td class="px-4 py-3">${f.dailyPerHead} kg/con</td>
+                    <td class="px-4 py-3">${f.pricePerKg.toLocaleString("vi-VN")} đ</td>
+                    <td class="px-4 py-3 font-bold text-right text-yellow-800">${f.totalCost.toLocaleString("vi-VN")} đ</td>
+                `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // 7 & 8. Health Table
+      function renderHealthTable() {
+        const tbody = document.getElementById("health-table-body");
+        tbody.innerHTML = "";
+
+        healthLogs.forEach((h) => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50 transition";
+
+          let badge = "bg-emerald-100 text-emerald-800";
+          if (h.category === "Điều Trị Bệnh") badge = "bg-rose-100 text-rose-800";
+
+          tr.innerHTML = `
+                    <td class="px-4 py-3 text-slate-500">${h.date}</td>
+                    <td class="px-4 py-3 font-bold text-slate-800">${h.target}</td>
+                    <td class="px-4 py-3"><span class="px-2.5 py-0.5 rounded-full text-[11px] ${badge} font-medium">${h.category}</span></td>
+                    <td class="px-4 py-3 font-semibold">${h.name}</td>
+                    <td class="px-4 py-3 text-slate-600">${h.dose}</td>
+                    <td class="px-4 py-3 font-medium text-slate-700">${h.status}</td>
+                    <td class="px-4 py-3 font-semibold text-indigo-600">${h.nextDate || "Không có"}</td>
+                    <td class="px-4 py-3 text-right font-bold text-rose-600">${h.cost.toLocaleString("vi-VN")} đ</td>
+                `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // 9. Pens Grid
+      function renderPensGrid() {
+        const container = document.getElementById("pens-container");
+        container.innerHTML = "";
+
+        pensData.forEach((p) => {
+          const div = document.createElement("div");
+          div.className = "bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3";
+          div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-slate-800 text-base flex items-center">
+                            <i class="fa-solid fa-warehouse text-blue-500 mr-2"></i> ${p.name}
+                        </h4>
+                        <span class="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-semibold">${p.type}</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-xl">
+                        <div><span class="text-slate-500">Số lượng:</span> <strong class="text-slate-800">${p.current}/${p.capacity} con</strong></div>
+                        <div><span class="text-slate-500">Nhiệt độ:</span> <strong class="text-slate-800">${p.temp}</strong></div>
+                        <div><span class="text-slate-500">Vệ sinh:</span> <span class="text-emerald-600 font-medium">${p.hygiene}</span></div>
+                        <div><span class="text-slate-500">Tình trạng:</span> <span class="text-slate-700">${p.status}</span></div>
+                    </div>
+
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: ${(p.current / p.capacity) * 100}%"></div>
+                    </div>
+                `;
+          container.appendChild(div);
+        });
+      }
+
+      // 10. Sales Table
+      function renderSalesTable() {
+        const tbody = document.getElementById("sales-table-body");
+        tbody.innerHTML = "";
+
+        let totalRevenue = 0;
+
+        salesLogs.forEach((s) => {
+          totalRevenue += s.totalRev;
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50 transition";
+          tr.innerHTML = `
+                    <td class="px-4 py-3 text-slate-500">${s.date}</td>
+                    <td class="px-4 py-3 font-bold text-slate-800">${s.batchCode}</td>
+                    <td class="px-4 py-3 text-slate-600">${s.buyer}</td>
+                    <td class="px-4 py-3 font-bold text-center">${s.qty} con</td>
+                    <td class="px-4 py-3 font-semibold text-center">${s.weightKg} kg</td>
+                    <td class="px-4 py-3">${s.pricePerKg.toLocaleString("vi-VN")} đ</td>
+                    <td class="px-4 py-3 text-right font-bold text-emerald-600 text-sm">${s.totalRev.toLocaleString("vi-VN")} đ</td>
+                `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById("prof-total-revenue").innerText = totalRevenue.toLocaleString("vi-VN") + " đ";
+        document.getElementById("dash-rev-month").innerText = (totalRevenue / 1000000).toFixed(1) + " Tr";
+        return totalRevenue;
+      }
+
+      // 11. Expenses Table
+      function renderExpensesTable() {
+        const tbody = document.getElementById("expenses-table-body");
+        tbody.innerHTML = "";
+
+        let totalExpense = 0;
+
+        // Include direct expense logs
+        expensesLogs.forEach((e) => {
+          totalExpense += e.amount;
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50 transition";
+          tr.innerHTML = `
+                    <td class="px-4 py-3 text-slate-500">${e.date}</td>
+                    <td class="px-4 py-3 font-bold text-rose-700">${e.category}</td>
+                    <td class="px-4 py-3 text-slate-600">${e.desc}</td>
+                    <td class="px-4 py-3 text-right font-bold text-rose-600">${e.amount.toLocaleString("vi-VN")} đ</td>
+                `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById("prof-total-expense").innerText = totalExpense.toLocaleString("vi-VN") + " đ";
+        return totalExpense;
+      }
+
+      // 12. Profit Analysis & Sow ROI Breakdown
+      function renderProfitTab() {
+        const rev = renderSalesTable();
+        const exp = renderExpensesTable();
+        const net = rev - exp;
+
+        const netElem = document.getElementById("prof-net-profit");
+        netElem.innerText = net.toLocaleString("vi-VN") + " đ";
+
+        if (net < 0) {
+          netElem.className = "text-2xl font-black text-rose-600 mt-2";
+        } else {
+          netElem.className = "text-2xl font-black text-emerald-600 mt-2";
+        }
+
+        document.getElementById("dash-profit-month").innerText = (net / 1000000).toFixed(1) + " Tr";
+
+        // Populate Sow ROI Breakdown
+        const tbody = document.getElementById("sow-profit-table-body");
+        tbody.innerHTML = "";
+
+        sowsData.forEach((sow) => {
+          const sowBatches = pigletBatches.filter((b) => b.sowId === sow.id);
+          const totalPigletsWeaned = sow.parityCount * 11; // avg 11
+          const estimatedRevenue = totalPigletsWeaned * 1500000; // 1.5tr / piglet value
+          const estimatedCost = sow.parityCount * 4500000; // feed and care cost
+          const estProfit = estimatedRevenue - estimatedCost;
+
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50 transition";
+          tr.innerHTML = `
+                    <td class="px-4 py-3 font-bold text-pink-700">${sow.id} (${sow.breed})</td>
+                    <td class="px-4 py-3 text-center font-bold">${sow.parityCount} lứa</td>
+                    <td class="px-4 py-3 text-center font-bold text-emerald-600">${totalPigletsWeaned} con</td>
+                    <td class="px-4 py-3 font-semibold text-emerald-700">${estimatedRevenue.toLocaleString("vi-VN")} đ</td>
+                    <td class="px-4 py-3 text-rose-600">${estimatedCost.toLocaleString("vi-VN")} đ</td>
+                    <td class="px-4 py-3 text-right font-black ${estProfit >= 0 ? "text-teal-600" : "text-rose-600"}">${estProfit.toLocaleString("vi-VN")} đ</td>
+                `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // 14. Calendar & Alerts Tab
+      function renderCalendarTab() {
+        const container = document.getElementById("calendar-event-list");
+        container.innerHTML = "";
+
+        const events = [
+          { title: "Nái NAI-001 dự kiến sinh ca đẻ thứ 4", date: "2026-09-11", type: "farrow", sow: "NAI-001" },
+          { title: "Tiêm Vaccine Dịch tả heo cho Đàn DAN-201", date: "2026-09-12", type: "vaccine", sow: "DAN-201" },
+          {
+            title: "Lịch Cai Sữa Đàn Heo Con DAN-201 (28 ngày tuổi)",
+            date: "2026-09-14",
+            type: "wean",
+            sow: "DAN-201",
+          },
+          {
+            title: "Kiểm tra thử thai Nái NAI-005 (18 ngày sau phối)",
+            date: "2026-09-15",
+            type: "mating",
+            sow: "NAI-005",
+          },
+          { title: "Dự kiến xuất bán Lô Heo Thịt T-102 (32 con)", date: "2026-09-20", type: "sale", sow: "Đàn T-102" },
+        ];
+
+        events.forEach((e) => {
+          let badgeClass = "bg-purple-100 text-purple-700";
+          let icon = "fa-calendar";
+          if (e.type === "farrow") {
+            badgeClass = "bg-rose-100 text-rose-700";
+            icon = "fa-baby-carriage";
+          }
+          if (e.type === "vaccine") {
+            badgeClass = "bg-emerald-100 text-emerald-700";
+            icon = "fa-syringe";
+          }
+          if (e.type === "wean") {
+            badgeClass = "bg-amber-100 text-amber-700";
+            icon = "fa-paw";
+          }
+          if (e.type === "sale") {
+            badgeClass = "bg-blue-100 text-blue-700";
+            icon = "fa-sack-dollar";
+          }
+
+          const div = document.createElement("div");
+          div.className =
+            "p-3.5 bg-slate-50 hover:bg-white rounded-xl border border-slate-200 transition flex items-center justify-between";
+          div.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2.5 rounded-lg ${badgeClass}">
+                            <i class="fa-solid ${icon} text-base"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-xs">${e.title}</h4>
+                            <p class="text-[11px] text-slate-500">Đối tượng: <strong>${e.sow}</strong></p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-bold px-3 py-1 bg-white border border-slate-200 rounded-lg text-slate-700">${e.date}</span>
+                `;
+          container.appendChild(div);
+        });
+      }
+
+      // Quick Dashboard Reminders & Notification Badges
+      function renderDashboardWidgets() {
+        const farrowAlertBox = document.getElementById("dash-farrowing-alerts");
+        farrowAlertBox.innerHTML = `
+                <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-600 text-sm"></i>
+                        <div>
+                            <p class="font-bold text-rose-900">NAI-001 - Dự kiến sinh ngày 11/09/2026</p>
+                            <p class="text-[11px] text-rose-700">Đã mang thai 113 ngày. Cần di chuyển sang Chuồng Đẻ 01 ngay!</p>
+                        </div>
+                    </div>
+                    <button onclick="switchTab('tab-farrowing')" class="px-2.5 py-1 bg-rose-600 text-white font-bold rounded-lg text-[11px]">Ghi nhận sinh</button>
+                </div>
+            `;
+
+        const vaccineAlertBox = document.getElementById("dash-vaccine-alerts");
+        vaccineAlertBox.innerHTML = `
+                <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-syringe text-emerald-600 text-sm"></i>
+                        <div>
+                            <p class="font-bold text-emerald-900">Tiêm Sắt Mũi 2 - Đàn DAN-201</p>
+                            <p class="text-[11px] text-emerald-700">Lịch tiêm phòng tới hạn cho 12 heo con</p>
+                        </div>
+                    </div>
+                    <button onclick="openModal('modal-add-health')" class="px-2.5 py-1 bg-emerald-600 text-white font-bold rounded-lg text-[11px]">Tiêm ngay</button>
+                </div>
+            `;
+
+        // Notification dropdown list
+        const quickAlert = document.getElementById("quick-alert-list");
+        quickAlert.innerHTML = `
+                <div class="p-3 hover:bg-slate-50 transition cursor-pointer" onclick="switchTab('tab-gestation')">
+                    <span class="font-bold text-rose-600">🐷 NÁI SẮP ĐẺ:</span> NAI-001 mang thai 113 ngày (còn 1 ngày).
+                </div>
+                <div class="p-3 hover:bg-slate-50 transition cursor-pointer" onclick="switchTab('tab-health')">
+                    <span class="font-bold text-emerald-600">💉 TỚI HẠN VACCINE:</span> Tiêm vắc-xin dịch tả cho đàn DAN-201.
+                </div>
+                <div class="p-3 hover:bg-slate-50 transition cursor-pointer" onclick="switchTab('tab-piglets')">
+                    <span class="font-bold text-amber-600">🍼 LỊCH CAI SỮA:</span> Đàn DAN-201 đạt 28 ngày tuổi vào tuần tới.
+                </div>
+            `;
+      }
+
+      // Helper: Populate Dropdown options
+      function populateSelectOptions() {
+        const matingSelect = document.getElementById("mating-sow-id");
+        const farrowSelect = document.getElementById("farrow-sow-id");
+
+        matingSelect.innerHTML = "";
+        farrowSelect.innerHTML = "";
+
+        sowsData.forEach((s) => {
+          const opt1 = document.createElement("option");
+          opt1.value = s.id;
+          opt1.innerText = `${s.id} - ${s.breed} (${s.status})`;
+          matingSelect.appendChild(opt1);
+
+          if (s.status === "Mang thai" || s.status === "Đã phối") {
+            const opt2 = document.createElement("option");
+            opt2.value = s.id;
+            opt2.innerText = `${s.id} - ${s.breed}`;
+            farrowSelect.appendChild(opt2);
+          }
+        });
+      }
+
+      // FORM SUBMISSION HANDLERS
+
+      function handleAddSow(e) {
+        e.preventDefault();
+        const newSow = {
+          id: document.getElementById("sow-id").value.toUpperCase(),
+          breed: document.getElementById("sow-breed").value,
+          birthDate: document.getElementById("sow-birth").value,
+          weight: parseFloat(document.getElementById("sow-weight").value) || 180,
+          origin: document.getElementById("sow-origin").value,
+          health: "Tốt",
+          parityCount: 0,
+          status: "Sẵn sàng",
+          pen: document.getElementById("sow-pen").value,
+        };
+        sowsData.unshift(newSow);
+        closeModal("modal-add-sow");
+        renderAllData();
+      }
+
+      function handleAddMating(e) {
+        e.preventDefault();
+        const sowId = document.getElementById("mating-sow-id").value;
+        const matingDateStr = document.getElementById("mating-date").value;
+
+        // Expected farrow = mating + 114 days
+        const matDate = new Date(matingDateStr);
+        matDate.setDate(matDate.getDate() + 114);
+        const expectedStr = matDate.toISOString().split("T")[0];
+
+        const newMating = {
+          id: Date.now(),
+          sowId: sowId,
+          heatDate: matingDateStr,
+          matingDate: matingDateStr,
+          boarId: document.getElementById("mating-boar").value,
+          count: parseInt(document.getElementById("mating-count").value),
+          result: "Đã phối",
+          expectedFarrow: expectedStr,
+        };
+
+        matingLogs.unshift(newMating);
+
+        // Update sow status
+        const sow = sowsData.find((s) => s.id === sowId);
+        if (sow) sow.status = "Mang thai";
+
+        closeModal("modal-add-mating");
+        renderAllData();
+      }
+
+      function handleAddFarrow(e) {
+        e.preventDefault();
+        const sowId = document.getElementById("farrow-sow-id").value;
+        const live = parseInt(document.getElementById("farrow-live").value) || 0;
+        const batchCode = "DAN-" + Math.floor(100 + Math.random() * 900);
+
+        const newFarrow = {
+          id: Date.now(),
+          sowId: sowId,
+          farrowDate: document.getElementById("farrow-date").value,
+          batchCode: batchCode,
+          totalBorn: live + parseInt(document.getElementById("farrow-dead").value || 0),
+          liveBorn: live,
+          deadBorn: parseInt(document.getElementById("farrow-dead").value || 0),
+          weakBorn: parseInt(document.getElementById("farrow-weak").value || 0),
+          avgWeight: parseFloat(document.getElementById("farrow-weight").value || 1.4),
+          note: document.getElementById("farrow-note").value,
+        };
+
+        farrowLogs.unshift(newFarrow);
+
+        // Create new Piglet Batch automatically
+        pigletBatches.unshift({
+          code: batchCode,
+          birthDate: newFarrow.farrowDate,
+          sowId: sowId,
+          count: live,
+          avgWeight: newFarrow.avgWeight,
+          stage: "Bú mẹ",
+          health: "Tốt",
+          targetWean: "2026-10-05",
+          pen: "Chuồng Đẻ 01",
+        });
+
+        // Update Sow
+        const sow = sowsData.find((s) => s.id === sowId);
+        if (sow) {
+          sow.status = "Đang nuôi con";
+          sow.parityCount += 1;
+        }
+
+        closeModal("modal-add-farrow");
+        renderAllData();
+      }
+
+      function handleAddFeed(e) {
+        e.preventDefault();
+        const qty = parseFloat(document.getElementById("feed-qty").value);
+        const price = parseFloat(document.getElementById("feed-price").value);
+
+        feedLogs.unshift({
+          id: Date.now(),
+          date: new Date().toISOString().split("T")[0],
+          feedType: document.getElementById("feed-type").value,
+          targetGroup: document.getElementById("feed-group").value,
+          qtyKg: qty,
+          dailyPerHead: parseFloat(document.getElementById("feed-daily").value),
+          pricePerKg: price,
+          totalCost: qty * price,
+        });
+
+        // Also record in overall expenses
+        expensesLogs.unshift({
+          id: Date.now(),
+          date: new Date().toISOString().split("T")[0],
+          category: "Thức ăn",
+          desc: `Mua/Dùng ${document.getElementById("feed-type").value} cho ${document.getElementById("feed-group").value}`,
+          amount: qty * price,
+        });
+
+        closeModal("modal-add-feed");
+        renderAllData();
+      }
+
+      function handleAddHealth(e) {
+        e.preventDefault();
+        const cost = parseFloat(document.getElementById("health-cost").value) || 0;
+
+        healthLogs.unshift({
+          id: Date.now(),
+          date: new Date().toISOString().split("T")[0],
+          target: document.getElementById("health-target").value,
+          category: document.getElementById("health-type").value,
+          name: document.getElementById("health-name").value,
+          dose: document.getElementById("health-dose").value,
+          status: document.getElementById("health-status").value,
+          cost: cost,
+          nextDate: "2026-10-10",
+        });
+
+        if (cost > 0) {
+          expensesLogs.unshift({
+            id: Date.now(),
+            date: new Date().toISOString().split("T")[0],
+            category: "Thuốc/Vaccine",
+            desc: `${document.getElementById("health-name").value} cho ${document.getElementById("health-target").value}`,
+            amount: cost,
+          });
+        }
+
+        closeModal("modal-add-health");
+        renderAllData();
+      }
+
+      function handleAddSale(e) {
+        e.preventDefault();
+        const weight = parseFloat(document.getElementById("sale-weight").value);
+        const priceKg = parseFloat(document.getElementById("sale-price-kg").value);
+        const totalRev = weight * priceKg;
+
+        salesLogs.unshift({
+          id: Date.now(),
+          date: new Date().toISOString().split("T")[0],
+          batchCode: document.getElementById("sale-batch").value,
+          buyer: document.getElementById("sale-buyer").value,
+          qty: parseInt(document.getElementById("sale-qty").value),
+          weightKg: weight,
+          pricePerKg: priceKg,
+          totalRev: totalRev,
+        });
+
+        closeModal("modal-add-sale");
+        renderAllData();
+      }
+
+      function handleAddExpense(e) {
+        e.preventDefault();
+        expensesLogs.unshift({
+          id: Date.now(),
+          date: new Date().toISOString().split("T")[0],
+          category: document.getElementById("exp-category").value,
+          desc: document.getElementById("exp-desc").value,
+          amount: parseFloat(document.getElementById("exp-amount").value),
+        });
+
+        closeModal("modal-add-expense");
+        renderAllData();
+      }
+
+      // TAB SWITCHER AND MODAL UTILITIES
+
+      function switchTab(tabId) {
+        document.querySelectorAll(".tab-content").forEach((el) => el.classList.add("hidden"));
+        document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"));
+
+        const target = document.getElementById(tabId);
+        if (target) target.classList.remove("hidden");
+
+        // Find matching tab button to mark active
+        const btns = document.querySelectorAll(".tab-btn");
+        btns.forEach((b) => {
+          if (b.getAttribute("onclick") && b.getAttribute("onclick").includes(tabId)) {
+            b.classList.add("active");
+          }
+        });
+
+        // Close sidebar on mobile
+        document.getElementById("sidebar").classList.add("-translate-x-full");
+      }
+
+      function openModal(id) {
+        document.getElementById(id).classList.remove("hidden");
+      }
+
+      function closeModal(id) {
+        document.getElementById(id).classList.add("hidden");
+      }
+
+      // Toggle Alert Dropdown
+      document.getElementById("alert-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.getElementById("alert-dropdown").classList.toggle("hidden");
+      });
+
+      document.addEventListener("click", () => {
+        document.getElementById("alert-dropdown").classList.add("hidden");
+      });
+
+      // Mobile Menu Toggle
+      document.getElementById("mobile-menu-toggle").addEventListener("click", () => {
+        document.getElementById("sidebar").classList.toggle("-translate-x-full");
+      });
+
+      // APP INITIALIZATION ON WINDOW LOAD
+      window.onload = function () {
+        initCharts();
+        renderAllData();
+      };
+    </script>
+  </body>
+</html>
